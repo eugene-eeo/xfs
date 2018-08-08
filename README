@@ -1,0 +1,24 @@
+
+    xfs
+    ===
+
+    xfs indexes all your files for you so that they are all
+    searchable via full text search. xfs on it's own only
+    comes with a very minimal set of binaries:
+
+      - xfs-watch    - handles watching over filesystem events
+      - xfs-index    - indexes text associated with a filename
+      - xfs-dispatch - handles dispatching events to the relevant handlers
+      - xfs-text     - handles text files
+      - xfs-pdf      - handles PDF files
+
+    $ cat ~/.xfs_config
+    {
+        // comments are allowed!
+        "watch": ["~/code/..."],
+        "dispatch": [
+            ["*.pdf", "xfs-pdf"],
+            ["*",     "xfs-text"],
+        ],
+    }
+
