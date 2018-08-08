@@ -6,6 +6,7 @@ import "encoding/json"
 import "github.com/mitchellh/go-homedir"
 
 type Config struct {
+	DataDir  string      `json:"data_dir"`
 	Dispatch [][2]string `json:"dispatch"`
 	Watch    []string    `json:"watch"`
 }
@@ -16,6 +17,13 @@ func NewConfigFromReader(r io.Reader) (*Config, error) {
 	err := dec.Decode(config)
 	if err != nil {
 		return nil, err
+	}
+	if config.DataDir == "" {
+		data_dir, err := homedir.Expand("~/.xfs")
+		if err != nil {
+			return nil, err
+		}
+		config.DataDir = data_dir
 	}
 	if config.Watch == nil {
 		config.Watch = []string{}
