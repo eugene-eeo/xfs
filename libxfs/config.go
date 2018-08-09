@@ -10,6 +10,7 @@ type Config struct {
 	DataDir  string      `json:"data_dir"`
 	Dispatch [][2]string `json:"dispatch"`
 	Watch    []string    `json:"watch"`
+	Poll     int         `json:"poll"`
 }
 
 func NewConfigFromReader(r io.Reader) (*Config, error) {
@@ -38,6 +39,9 @@ func NewConfigFromReader(r io.Reader) (*Config, error) {
 	}
 	if config.Dispatch == nil {
 		config.Dispatch = [][2]string{}
+	}
+	if config.Poll == 0 {
+		config.Poll = 1
 	}
 	return config, nil
 }

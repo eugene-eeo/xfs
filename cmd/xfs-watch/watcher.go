@@ -21,6 +21,8 @@ func toEvent(evt watcher.Event) *libxfs.Event {
 	case watcher.Write:
 		ev_type = libxfs.Update
 	}
+	// For some reason watcher treats file changes as writes to a
+	// directory. This removes that event.
 	if ev_type == libxfs.Update && evt.IsDir() {
 		return nil
 	}
@@ -79,5 +81,5 @@ func main() {
 			}
 		}
 	}()
-	w.Start(time.Second * 1)
+	w.Start(time.Second * time.Duration(config.Poll))
 }
