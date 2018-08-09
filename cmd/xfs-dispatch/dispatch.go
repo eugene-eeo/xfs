@@ -28,6 +28,7 @@ func main() {
 					panic(err)
 				}
 				fmt.Println(mimetype)
+				fmt.Println(libxfs.GetSHA256ChecksumFromFile(e.Src))
 				fmt.Println(dispatcher.Match(mimetype))
 			}
 		}

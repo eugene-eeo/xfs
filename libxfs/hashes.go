@@ -1,5 +1,9 @@
 package libxfs
 
+import "os"
+import "io"
+import "encoding/hex"
+import "crypto/sha256"
 import bolt "github.com/coreos/bbolt"
 
 const BBOLT_FILENAME = "bbolt"
@@ -34,4 +38,22 @@ func GetHash(db *bolt.DB, path Path) (Hash, error) {
 		return nil
 	})
 	return hash, err
+}
+
+func GetSHA256Checksum(r io.Reader) (string, error) {
+	h := sha256.New()
+	_, err := io.Copy(h, r)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
+}
+
+func GetSHA256ChecksumFromFile(filename string) (string, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	return GetSHA256Checksum(f)
 }

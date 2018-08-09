@@ -29,6 +29,13 @@ func NewConfigFromReader(r io.Reader) (*Config, error) {
 	if config.Watch == nil {
 		config.Watch = []string{}
 	}
+	for i, x := range config.Watch {
+		path, err := homedir.Expand(x)
+		if err != nil {
+			return nil, err
+		}
+		config.Watch[i] = path
+	}
 	if config.Dispatch == nil {
 		config.Dispatch = [][2]string{}
 	}
