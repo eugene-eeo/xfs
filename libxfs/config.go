@@ -4,6 +4,7 @@ import "io"
 import "os"
 import "encoding/json"
 import "github.com/mitchellh/go-homedir"
+import "github.com/DisposaBoy/JsonConfigReader"
 
 type Config struct {
 	DataDir  string      `json:"data_dir"`
@@ -13,7 +14,7 @@ type Config struct {
 
 func NewConfigFromReader(r io.Reader) (*Config, error) {
 	config := &Config{}
-	dec := json.NewDecoder(r)
+	dec := json.NewDecoder(JsonConfigReader.New(r))
 	err := dec.Decode(config)
 	if err != nil {
 		return nil, err

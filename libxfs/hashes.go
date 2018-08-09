@@ -2,6 +2,8 @@ package libxfs
 
 import bolt "github.com/coreos/bbolt"
 
+const BBOLT_FILENAME = "bbolt"
+
 var hashes_bucket = []byte("xfs-path-to-hash")
 
 type Path []byte

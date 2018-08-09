@@ -1,12 +1,26 @@
 package main
 
+import "io/ioutil"
 import "fmt"
 import "path/filepath"
 import "os"
 
 import "github.com/eugene-eeo/xfs/libxfs"
 import "github.com/docopt/docopt-go"
+import "github.com/blevesearch/bleve"
 import bolt "github.com/coreos/bbolt"
+
+func indexStdin(path libxfs.Path, index bleve.Index) error {
+	b, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return err
+	}
+	entry := libxfs.BleveEntry{
+		Path:     string(path),
+		Contents: string(b),
+	}
+	return entry.Index(index)
+}
 
 func main() {
 	usage := `
@@ -27,7 +41,12 @@ Usage:
 		panic(err)
 	}
 
-	db, err := bolt.Open(filepath.Join(config.DataDir, "bbolt"), 0600, nil)
+	index, err := libxfs.GetBleveIndex(config)
+	if err != nil {
+		panic(err)
+	}
+
+	db, err := bolt.Open(filepath.Join(config.DataDir, libxfs.BBOLT_FILENAME), 0600, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -43,6 +62,10 @@ Usage:
 		if err != nil {
 			panic(err)
 		}
+		err = indexStdin(path, index)
+		if err != nil {
+			panic(err)
+		}
 	}
 	if get {
 		path := libxfs.Path(arguments["<path>"].(string))
@@ -51,5 +74,13 @@ Usage:
 			panic(err)
 		}
 		fmt.Println(string(value))
+		fmt.Println("-----------")
+		entry, err := libxfs.GetBleveEntry(index, string(path))
+		if err != nil {
+			panic(err)
+		}
+		if entry != nil {
+			fmt.Println(entry.Contents)
+		}
 	}
 }

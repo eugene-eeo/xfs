@@ -9,10 +9,11 @@
       - xfs-watch    - handles watching over filesystem events
       - xfs-index    - indexes text associated with a filename
       - xfs-dispatch - handles dispatching events to the relevant handlers
+      - xfs-search   - searches index using given query
       - xfs-text     - handles text files
       - xfs-pdf      - handles PDF files
 
-    $ cat ~/.xfs_config
+    $ cat ~/.xfsrc
     {
         // comments are allowed!
         "watch": ["~/code/..."],
