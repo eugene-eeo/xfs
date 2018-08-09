@@ -12,12 +12,12 @@ Usage:
 	xfs-search --help
 	`)
 	query := arguments["<query>"].(string)
-	limitStr := arguments["--limit"].(string)
 	limit := 0
-	if limitStr == "" {
+	limitStr := arguments["--limit"]
+	if limitStr == nil {
 		limit = 20
 	} else {
-		l, err := strconv.Atoi(limitStr)
+		l, err := strconv.Atoi(limitStr.(string))
 		if err != nil {
 			panic("Expected --limit to be number")
 		}
