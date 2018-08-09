@@ -10,9 +10,9 @@ const (
 )
 
 type Event struct {
-	Type EventType
-	Src  string
-	Dst  string
+	Type EventType `json:"type"`
+	Src  string    `json:"src"`
+	Dst  string    `json:"dst"`
 }
 
 func NewEvent(event_type EventType, src string, dst string) *Event {

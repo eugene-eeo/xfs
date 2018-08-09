@@ -11,7 +11,7 @@ type Dispatcher struct {
 	entries []Entry
 }
 
-func DispatcherFromJson(data [][2]string) (*Dispatcher, error) {
+func NewDispatcherFromJson(data [][2]string) (*Dispatcher, error) {
 	entries := make([]Entry, len(data))
 	for i, entry := range data {
 		pattern := entry[0]
@@ -25,9 +25,9 @@ func DispatcherFromJson(data [][2]string) (*Dispatcher, error) {
 	return &Dispatcher{entries}, nil
 }
 
-func (d *Dispatcher) Dispatch(path string) (handler string, found bool) {
+func (d *Dispatcher) Match(mimetype string) (handler string, found bool) {
 	for _, entry := range d.entries {
-		if entry.glob.Match(path) {
+		if entry.glob.Match(mimetype) {
 			return entry.handler, true
 		}
 	}

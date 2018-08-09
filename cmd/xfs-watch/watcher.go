@@ -1,5 +1,7 @@
 package main
 
+import "os"
+import "encoding/json"
 import "fmt"
 import "github.com/rjeczalik/notify"
 import "github.com/mitchellh/go-homedir"
@@ -33,10 +35,12 @@ func main() {
 			return
 		}
 		defer notify.Stop(events)
+		// need to resolve Rename events at the per-watched-stream level
+		// so that we don't run into race conditions
 		go (func() {
 			var prev notify.EventInfo = nil
 			for evt := range events {
-				fmt.Println(evt.Event(), evt.Path())
+				fmt.Fprintln(os.Stderr, evt.Event(), evt.Path())
 				if evt.Event() == notify.Rename {
 					if prev == nil {
 						prev = evt
@@ -54,8 +58,9 @@ func main() {
 			}
 		})()
 	}
+	enc := json.NewEncoder(os.Stdout)
 	for {
 		event := <-agg
-		fmt.Println(event.Type, event.Src, event.Dst)
+		enc.Encode(event)
 	}
 }

@@ -18,8 +18,8 @@
         // comments are allowed!
         "watch": ["~/code/..."],
         "dispatch": [
-            ["*.pdf", "xfs-pdf"],
-            ["*",     "xfs-text"],
+            ["application/pdf",    "xfs-pdf"],
+            ["application/x-text", "xfs-text"],
         ],
     }
 
