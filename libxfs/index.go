@@ -29,6 +29,9 @@ func GetBleveEntry(index bleve.Index, path string) (*BleveEntry, error) {
 	if err != nil {
 		return nil, err
 	}
+	if doc == nil {
+		return nil, nil
+	}
 	contents := ""
 	for _, field := range doc.Fields {
 		if field.Name() == "Contents" {
