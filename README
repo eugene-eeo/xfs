@@ -23,6 +23,7 @@
         ],
         "poll": 5, // poll every five seconds
     }
+    $ xfs-watch | xfs-dispatch
 
 
     TODO
