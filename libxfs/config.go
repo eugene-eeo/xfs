@@ -10,7 +10,22 @@ type Config struct {
 	DataDir  string      `json:"data_dir"`
 	Dispatch [][2]string `json:"dispatch"`
 	Watch    []string    `json:"watch"`
+	Ignore   []string    `json:"ignore"`
 	Poll     int         `json:"poll"`
+}
+
+func expandAll(paths []string) ([]string, error) {
+	if paths == nil {
+		return []string{}, nil
+	}
+	for i, x := range paths {
+		path, err := homedir.Expand(x)
+		if err != nil {
+			return nil, err
+		}
+		paths[i] = path
+	}
+	return paths, nil
 }
 
 func NewConfigFromReader(r io.Reader) (*Config, error) {
@@ -27,15 +42,13 @@ func NewConfigFromReader(r io.Reader) (*Config, error) {
 		}
 		config.DataDir = data_dir
 	}
-	if config.Watch == nil {
-		config.Watch = []string{}
+	config.Watch, err = expandAll(config.Watch)
+	if err != nil {
+		return nil, err
 	}
-	for i, x := range config.Watch {
-		path, err := homedir.Expand(x)
-		if err != nil {
-			return nil, err
-		}
-		config.Watch[i] = path
+	config.Ignore, err = expandAll(config.Ignore)
+	if err != nil {
+		return nil, err
 	}
 	if config.Dispatch == nil {
 		config.Dispatch = [][2]string{}

@@ -45,6 +45,19 @@ func GetBleveEntry(index bleve.Index, path string) (*BleveEntry, error) {
 	}, nil
 }
 
+func DelBleveEntry(index bleve.Index, path string) error {
+	return index.Delete(path)
+}
+
+func MoveBleveEntry(index bleve.Index, src string, dst string) error {
+	entry, err := GetBleveEntry(index, src)
+	if entry == nil || err != nil {
+		return err
+	}
+	entry.Path = dst
+	return entry.Index(index)
+}
+
 func min(a, b int) int {
 	if a > b {
 		return b

@@ -1,5 +1,6 @@
 package libxfs
 
+import "errors"
 import "os"
 import "io"
 import "encoding/hex"
@@ -9,6 +10,7 @@ import bolt "github.com/coreos/bbolt"
 const BBOLT_FILENAME = "bbolt"
 
 var hashes_bucket = []byte("xfs-path-to-hash")
+var ErrHashNotFound = errors.New("hash not found")
 
 type Path []byte
 type Hash []byte
@@ -38,6 +40,29 @@ func GetHash(db *bolt.DB, path Path) (Hash, error) {
 		return nil
 	})
 	return hash, err
+}
+
+func DelHash(db *bolt.DB, path Path) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(hashes_bucket).Delete(path)
+	})
+}
+
+func MoveHash(db *bolt.DB, src Path, dst Path) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(hashes_bucket)
+		h := b.Get(src)
+		if len(h) == 0 {
+			return ErrHashNotFound
+		}
+		if err := b.Delete(src); err != nil {
+			return err
+		}
+		if err := b.Put(dst, h); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func GetSHA256Checksum(r io.Reader) (string, error) {

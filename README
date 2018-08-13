@@ -10,7 +10,6 @@
       - xfs-index    - indexes text associated with a filename
       - xfs-dispatch - handles dispatching events to the relevant handlers
       - xfs-search   - searches index using given query
-      - xfs-text     - handles text files
       - xfs-pdf      - handles PDF files
 
     $ cat ~/.xfsrc
@@ -19,7 +18,7 @@
         "watch": ["~/code/..."],
         "dispatch": [
             ["application/pdf",    "xfs-pdf"],
-            ["application/x-text", "xfs-text"],
+            ["application/x-text", "cat"],
         ],
     }
 

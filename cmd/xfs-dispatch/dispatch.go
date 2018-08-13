@@ -1,10 +1,53 @@
 package main
 
-import "bufio"
 import "encoding/json"
 import "fmt"
 import "os"
+import "os/exec"
+import "github.com/mitchellh/go-homedir"
 import "github.com/eugene-eeo/xfs/libxfs"
+
+func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
+	switch event.Type {
+	case libxfs.Create:
+	case libxfs.Update:
+		// dispatch | xfs-index set event.Src checksum
+		checksum, err := libxfs.GetSHA256ChecksumFromFile(event.Src)
+		if err != nil {
+			return nil
+		}
+		mimetype, err := libxfs.MimetypeFromFile(event.Src)
+		if err != nil {
+			return nil
+		}
+		handler, found := d.Match(mimetype)
+		if !found {
+			return nil
+		}
+		file, err := os.Open(event.Src)
+		if err != nil {
+			return nil
+		}
+		defer file.Close()
+		cmd := exec.Command(handler)
+		ind := exec.Command("bin/xfs-index", "set", event.Src, checksum)
+		cmd.Stdin = file
+		ind.Stdin, _ = cmd.StdoutPipe()
+		ind.Start()
+		cmd.Run()
+		err = ind.Wait()
+		if err != nil {
+			fmt.Println(err)
+		}
+	case libxfs.Delete:
+		// xfs-index del event.Src
+		exec.Command("bin/xfs-index", "del", event.Src).Run()
+	case libxfs.Rename:
+		// xfs-index move event.Src event.Dst
+		exec.Command("bin/xfs-index", "move", event.Src, event.Dst).Run()
+	}
+	return nil
+}
 
 func main() {
 	config, err := libxfs.NewConfig()
@@ -15,22 +58,24 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	b := bufio.NewReader(os.Stdin)
-	d := json.NewDecoder(b)
+	home, err := homedir.Expand("~/")
+	if err != nil {
+		panic(err)
+	}
+	d := json.NewDecoder(os.Stdin)
 	for {
-		e := &libxfs.Event{}
-		err = d.Decode(e)
+		e := libxfs.Event{}
+		err = d.Decode(&e)
 		if err == nil {
-			fmt.Println("Event: ", e.Type, e.Src, e.Dst)
-			if e.Type == libxfs.Create || e.Type == libxfs.Update {
-				mimetype, err := libxfs.MimetypeFromFile(e.Src)
-				if err != nil {
-					panic(err)
-				}
-				fmt.Println(mimetype)
-				fmt.Println(libxfs.GetSHA256ChecksumFromFile(e.Src))
-				fmt.Println(dispatcher.Match(mimetype))
-			}
+			fmt.Printf(
+				"%s src=%s dst=%s\n",
+				libxfs.PrettifyEventType(e.Type),
+				libxfs.PrettifyPath(home, e.Src),
+				libxfs.PrettifyPath(home, e.Dst),
+			)
+			go handle(e, dispatcher)
+		} else {
+			fmt.Println(err)
 		}
 	}
 }

@@ -27,11 +27,15 @@ func main() {
 Usage:
 	xfs-index set <path> <hash> [--dry-run]
 	xfs-index get <path>
+	xfs-index del <path>
+	xfs-index move <src> <dst>
 	xfs-index --help
 	`
 	arguments, _ := docopt.ParseDoc(usage)
 	set := arguments["set"].(bool)
 	get := arguments["get"].(bool)
+	del := arguments["del"].(bool)
+	move := arguments["move"].(bool)
 
 	config, err := libxfs.NewConfig()
 	if err != nil {
@@ -74,13 +78,34 @@ Usage:
 			panic(err)
 		}
 		fmt.Println(string(value))
-		fmt.Println("-----------")
+		fmt.Println()
 		entry, err := libxfs.GetBleveEntry(index, string(path))
 		if err != nil {
 			panic(err)
 		}
 		if entry != nil {
 			fmt.Println(entry.Contents)
+		}
+	}
+	if del {
+		path := libxfs.Path(arguments["<path>"].(string))
+		err := libxfs.DelHash(db, path)
+		if err != nil {
+			panic(err)
+		}
+		if err := libxfs.DelBleveEntry(index, string(path)); err != nil {
+			panic(err)
+		}
+	}
+	if move {
+		src := libxfs.Path(arguments["<src>"].(string))
+		dst := libxfs.Path(arguments["<dst>"].(string))
+		err := libxfs.MoveHash(db, src, dst)
+		if err != nil {
+			panic(err)
+		}
+		if err := libxfs.MoveBleveEntry(index, string(src), string(dst)); err != nil {
+			panic(err)
 		}
 	}
 }

@@ -21,9 +21,12 @@ func toEvent(evt watcher.Event) *libxfs.Event {
 	case watcher.Write:
 		ev_type = libxfs.Update
 	}
-	// For some reason watcher treats file changes as writes to a
-	// directory. This removes that event.
-	if ev_type == libxfs.Update && evt.IsDir() {
+	// Watcher emits events for each file when we do any of:
+	//  $ rm -rf x
+	//  $ mv x y
+	//  $ touch x/a
+	// So it is safe to ignore this event.
+	if evt.IsDir() {
 		return nil
 	}
 	return libxfs.NewEvent(ev_type, evt.Path, evt.Dst)
@@ -39,6 +42,15 @@ func addPaths(paths []string, w *watcher.Watcher) error {
 			continue
 		}
 		if err := w.Add(path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func addIgnores(paths []string, w *watcher.Watcher) error {
+	for _, path := range paths {
+		if err := w.Ignore(path); err != nil {
 			return err
 		}
 	}
@@ -62,6 +74,10 @@ func main() {
 	)
 	w.IgnoreHiddenFiles(true)
 	err = addPaths(config.Watch, w)
+	if err != nil {
+		panic(err)
+	}
+	err = addIgnores(config.Ignore, w)
 	if err != nil {
 		panic(err)
 	}
