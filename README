@@ -15,16 +15,19 @@
     $ cat ~/.xfsrc
     {
         // comments are allowed!
-        "watch": ["~/code/..."],
+        "watch":    ["~/code/..."],
+        "ignore":   ["~/code/bin/"],
         "dispatch": [
             ["application/pdf",    "xfs-pdf"],
             ["application/x-text", "cat"],
         ],
+        "poll": 5, // poll every five seconds
     }
 
 
     TODO
     ----
-     - [ ] actually get this thing working
+     - [x] actually get this thing working
+     - [ ] consistency + correctness (respecting ignore)
      - [ ] tests, lots of tests
      - [ ] write documentation

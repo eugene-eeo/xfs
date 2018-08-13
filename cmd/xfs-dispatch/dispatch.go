@@ -11,7 +11,7 @@ func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
 	switch event.Type {
 	case libxfs.Create:
 	case libxfs.Update:
-		// dispatch | xfs-index set event.Src checksum
+		// dispatch event.Src | xfs-index set event.Src checksum
 		checksum, err := libxfs.GetSHA256ChecksumFromFile(event.Src)
 		if err != nil {
 			return nil
@@ -29,12 +29,14 @@ func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
 			return nil
 		}
 		defer file.Close()
-		cmd := exec.Command(handler)
+		cmd := exec.Command(handler, event.Src)
 		ind := exec.Command("bin/xfs-index", "set", event.Src, checksum)
-		cmd.Stdin = file
 		ind.Stdin, _ = cmd.StdoutPipe()
 		ind.Start()
-		cmd.Run()
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+		}
 		err = ind.Wait()
 		if err != nil {
 			fmt.Println(err)
