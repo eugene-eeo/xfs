@@ -7,6 +7,10 @@ type Entry struct {
 	handler string
 }
 
+func (e *Entry) Match(mimetype string) bool {
+	return e.glob.Match(mimetype)
+}
+
 type Dispatcher struct {
 	entries []Entry
 }
@@ -27,7 +31,7 @@ func NewDispatcherFromJson(data [][2]string) (*Dispatcher, error) {
 
 func (d *Dispatcher) Match(mimetype string) (handler string, found bool) {
 	for _, entry := range d.entries {
-		if entry.glob.Match(mimetype) {
+		if entry.Match(mimetype) {
 			return entry.handler, true
 		}
 	}

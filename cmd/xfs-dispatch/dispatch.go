@@ -7,20 +7,17 @@ import "go.uber.org/zap"
 import "github.com/mitchellh/go-homedir"
 import "github.com/eugene-eeo/xfs/libxfs"
 
+type Request struct {
+	id int
+	libxfs.Event
+}
+
 type HandlerError struct {
 	stderr []byte
 }
 
 func (h *HandlerError) Error() string {
 	return string(h.stderr)
-}
-
-func logError(logger *zap.SugaredLogger, rid int, err error) {
-	logger.Errorw(
-		"error",
-		"rid", rid,
-		"err", err,
-	)
 }
 
 func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
@@ -85,34 +82,39 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	d := json.NewDecoder(os.Stdin)
-	i := 0
 	sugar := zap.NewExample().Sugar()
 	defer sugar.Sync()
+	requests := make(chan Request, 20)
+	for n := 0; n < 4; n++ {
+		go func() {
+			for req := range requests {
+				e := req.Event
+				sugar.Infow("new request",
+					"rid", req.id,
+					"type", libxfs.PrettifyEventType(e.Type),
+					"src", libxfs.PrettifyPath(home, e.Src),
+					"dst", libxfs.PrettifyPath(home, e.Dst))
+				err := handle(e, dispatcher)
+				if err != nil {
+					sugar.Errorw("error handling request",
+						"rid", req.id,
+						"err", err.Error())
+				}
+			}
+		}()
+	}
+	d := json.NewDecoder(os.Stdin)
+	i := 0
 	for {
 		e := libxfs.Event{}
 		err = d.Decode(&e)
 		if err == nil {
 			i++
-			rid := i
-			go func() {
-				sugar.Infow(
-					"new request",
-					"rid", rid,
-					"type", libxfs.PrettifyEventType(e.Type),
-					"src", libxfs.PrettifyPath(home, e.Src),
-					"dst", libxfs.PrettifyPath(home, e.Dst),
-				)
-				err := handle(e, dispatcher)
-				if err == nil {
-					return
-				}
-				sugar.Errorw(
-					"error handling request",
-					"rid", rid,
-					"err", err.Error(),
-				)
-			}()
+			requests <- Request{
+				id:    i,
+				Event: e,
+			}
 		}
 	}
+	close(requests)
 }
