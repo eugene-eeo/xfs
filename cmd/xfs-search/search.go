@@ -9,10 +9,10 @@ import "github.com/eugene-eeo/xfs/libxfs"
 func main() {
 	arguments, _ := docopt.ParseDoc(`
 Usage:
-	xfs-search <query> [--limit=<n>] [--pretty]
+	xfs-search <query> [--limit=<n>] [--no-pretty]
 	xfs-search --help
 	`)
-	pretty := arguments["--pretty"].(bool)
+	no_pretty := arguments["--no-pretty"].(bool)
 	query := arguments["<query>"].(string)
 	limit := 0
 	limitStr := arguments["--limit"]
@@ -41,13 +41,13 @@ Usage:
 	if err != nil {
 		panic(err)
 	}
-	if pretty {
+	if no_pretty {
 		for _, f := range results {
-			fmt.Println(libxfs.PrettifyPath(home, f))
+			fmt.Println(f)
 		}
 	} else {
 		for _, f := range results {
-			fmt.Println(f)
+			fmt.Println(libxfs.PrettifyPath(home, f))
 		}
 	}
 }
