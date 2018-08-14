@@ -7,6 +7,14 @@ import "go.uber.org/zap"
 import "github.com/mitchellh/go-homedir"
 import "github.com/eugene-eeo/xfs/libxfs"
 
+type HandlerError struct {
+	stderr []byte
+}
+
+func (h *HandlerError) Error() string {
+	return string(h.stderr)
+}
+
 func logError(logger *zap.SugaredLogger, rid int, err error) {
 	logger.Errorw(
 		"error",
@@ -19,11 +27,7 @@ func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
 	switch event.Type {
 	case libxfs.Create:
 	case libxfs.Update:
-		// dispatch event.Src | xfs-index set event.Src checksum
-		checksum, err := libxfs.GetSHA256ChecksumFromFile(event.Src)
-		if err != nil {
-			return err
-		}
+		// dispatch event.Src | xfs-index set event.Src
 		mimetype, err := libxfs.MimetypeFromFile(event.Src)
 		if err != nil {
 			return err
@@ -32,17 +36,26 @@ func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
 		if !found {
 			return nil
 		}
-		file, err := os.Open(event.Src)
+		cmd := exec.Command(handler, event.Src)
+		ind := exec.Command("bin/xfs-index", "set", event.Src)
+		ind.Stdin, err = cmd.StdoutPipe()
 		if err != nil {
 			return err
 		}
-		defer file.Close()
-		cmd := exec.Command(handler, event.Src)
-		ind := exec.Command("bin/xfs-index", "set", event.Src, checksum)
-		ind.Stdin, _ = cmd.StdoutPipe()
 		_ = ind.Start()
 		_ = cmd.Run()
 		_ = ind.Wait()
+		if !cmd.ProcessState.Success() {
+			e, _ := cmd.StderrPipe()
+			defer e.Close()
+			b := make([]byte, 250)
+			n, err := e.Read(b)
+			if err != nil {
+				return err
+			}
+			b = b[:n]
+			return &HandlerError{b}
+		}
 	case libxfs.Delete:
 		// xfs-index del event.Src
 		err := exec.Command("bin/xfs-index", "del", event.Src).Run()
@@ -97,7 +110,7 @@ func main() {
 				sugar.Errorw(
 					"error handling request",
 					"rid", rid,
-					"err", err,
+					"err", err.Error(),
 				)
 			}()
 		}
