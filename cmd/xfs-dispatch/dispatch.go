@@ -90,14 +90,14 @@ func main() {
 			for req := range requests {
 				e := req.Event
 				sugar.Infow("new request",
-					"rid", req.id,
+					"id", req.id,
 					"type", libxfs.PrettifyEventType(e.Type),
 					"src", libxfs.PrettifyPath(home, e.Src),
 					"dst", libxfs.PrettifyPath(home, e.Dst))
 				err := handle(e, dispatcher)
 				if err != nil {
 					sugar.Errorw("error handling request",
-						"rid", req.id,
+						"id", req.id,
 						"err", err.Error())
 				}
 			}
