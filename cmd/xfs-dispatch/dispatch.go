@@ -42,17 +42,6 @@ func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
 		_ = ind.Start()
 		_ = cmd.Run()
 		_ = ind.Wait()
-		if !cmd.ProcessState.Success() {
-			e, _ := cmd.StderrPipe()
-			defer e.Close()
-			b := make([]byte, 250)
-			n, err := e.Read(b)
-			if err != nil {
-				return err
-			}
-			b = b[:n]
-			return &HandlerError{b}
-		}
 	case libxfs.Delete:
 		// xfs-index del event.Src
 		err := exec.Command("bin/xfs-index", "del", event.Src).Run()
