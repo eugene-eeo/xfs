@@ -34,7 +34,7 @@ func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
 			return nil
 		}
 		cmd := exec.Command(handler, event.Src)
-		ind := exec.Command("bin/xfs-index", "set", event.Src)
+		ind := exec.Command("xfs-index", "set", event.Src)
 		ind.Stdin, err = cmd.StdoutPipe()
 		if err != nil {
 			return err
@@ -44,13 +44,13 @@ func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
 		_ = ind.Wait()
 	case libxfs.Delete:
 		// xfs-index del event.Src
-		err := exec.Command("bin/xfs-index", "del", event.Src).Run()
+		err := exec.Command("xfs-index", "del", event.Src).Run()
 		if err != nil {
 			return err
 		}
 	case libxfs.Rename:
 		// xfs-index move event.Src event.Dst
-		err := exec.Command("bin/xfs-index", "move", event.Src, event.Dst).Run()
+		err := exec.Command("xfs-index", "move", event.Src, event.Dst).Run()
 		if err != nil {
 			return err
 		}
