@@ -135,7 +135,8 @@ foreach [glob, handler] in the dispatch array:
 ```
 
 So you could run into problems if you match against something too general
-before other more specific tools.
+before other more specific tools. All paths are passed in full (i.e. they
+are all absolute paths) to the handlers.
 
 
 ## Configuration Options

@@ -62,6 +62,8 @@ Usage:
 			panic(err)
 		}
 		if entry != nil {
+			fmt.Println(path, "OK")
+			fmt.Println("--------")
 			fmt.Println(entry.Contents)
 		}
 	}
