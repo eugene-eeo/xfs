@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/radovskyb/watcher"
+	"github.com/eugene-eeo/xfs/watcher"
 )
 
 func main() {
