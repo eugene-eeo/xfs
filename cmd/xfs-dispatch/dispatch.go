@@ -23,6 +23,7 @@ func (h *HandlerError) Error() string {
 func handle(event libxfs.Event, d *libxfs.Dispatcher) error {
 	switch event.Type {
 	case libxfs.Create:
+		fallthrough
 	case libxfs.Update:
 		// dispatch event.Src | xfs-index set event.Src
 		mimetype, err := libxfs.MimetypeFromFile(event.Src)

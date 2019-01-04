@@ -23,7 +23,7 @@ func indexStdin(path string, index bleve.Index) error {
 func main() {
 	usage := `
 Usage:
-	xfs-index set <path> [--dry-run]
+	xfs-index set <path>
 	xfs-index get <path>
 	xfs-index del <path>
 	xfs-index move <src> <dst>
@@ -50,8 +50,7 @@ Usage:
 
 	if set {
 		path := arguments["<path>"].(string)
-		err = indexStdin(path, index)
-		if err != nil {
+		if err := indexStdin(path, index); err != nil {
 			panic(err)
 		}
 	}
@@ -62,7 +61,7 @@ Usage:
 			panic(err)
 		}
 		if entry != nil {
-			fmt.Println(path, "OK")
+			fmt.Printf("%s\tOK\n", path)
 			fmt.Println("--------")
 			fmt.Println(entry.Contents)
 		}
